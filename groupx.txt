@@ -1,0 +1,85 @@
+
+#Data Loading & Prep (Steps 1 & 2)
+import pandas as pd
+
+# Load the data
+df = pd.read_excel('inventory.xlsx')
+
+print("Available columns after loading data:")
+print(df.columns)
+
+# Calculations
+df['Revenue'] = df['Quantity'] * df['Selling Price'] * (1 - df['Discount'] / 100)
+df['Cost'] = df['Quantity'] * df['Unit Cost'] # Corrected column name
+df['Profit'] = df['Revenue'] - df['Cost']
+df['Profit_Margin'] = (df['Profit'] / df['Revenue']) * 100
+
+# Show the first few rows to verify
+df.head()
+
+
+
+
+[ ]
+#Descriptive Statistics (Step 3)
+
+# General Stats
+print(df[['Revenue', 'Profit', 'Profit_Margin']].describe())
+
+# Category-wise Stats
+category_summary = df.groupby('Category').agg({
+    'Profit_Margin': 'mean',
+    'Revenue': 'sum',
+    'Product ID': 'count'
+})
+print(category_summary)
+
+[ ]
+#Questions A & B
+
+# Question A: Highest/Lowest Margin
+margins = df.groupby('Category')['Profit_Margin'].mean().sort_values()
+print(f"Highest: {margins.idxmax()}, Lowest: {margins.idxmin()}")
+
+# Question B: High Discount Impact
+high_disc = df[df['Discount'] > 40]
+print(high_disc.groupby('Region')['Profit'].sum())
+Highest: Electronics, Lowest: Clothing
+Region
+East     -245.6860
+North   -1190.9930
+South   -2437.0260
+West     1116.9445
+Name: Profit, dtype: float64
+QUESTION A: Explanation: The category with the highest average profit margin represents our most efficient product line, while the lowest margin category indicates where costs are too high relative to the selling price.
+
+QUESTION B: Explanation: High discounts (above 40%) in the identified region are leading to a decrease in overall profitability, suggesting that the volume of sales does not compensate for the price reduction.
+
+
+[ ]
+#Question C (Losses)
+
+losses = df[df['Profit'] < 0]
+print(f"Total loss-making transactions: {len(losses)}")
+print(losses['Category'].value_counts())
+Total loss-making transactions: 51
+Category
+Books          14
+Clothing       14
+Furniture      13
+Toys            5
+Electronics     5
+Name: count, dtype: int64
+QUESTION C: Explanation: Loss-making transactions are mostly found in the specific categories shown above, hence a need to review unit costs or pricing strategies for those products.
+
+
+[ ]
+#Question D (Monthly Profit)
+
+df['Sale Date'] = pd.to_datetime(df['Sale Date'])
+df['Month'] = df['Sale Date'].dt.month_name()
+print(df.groupby('Month')['Profit'].sum().idxmax())
+December
+QUESTION D: Explanation: The most profitable month identifies the peak period of 2023 where thE sales volume and margin was at its highest.
+
+Colab paid products - Cancel contracts here
